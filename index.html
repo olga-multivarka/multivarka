@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="multivarka-version" content="2026-11-09-design-v3-artwork-fix">
+<meta name="multivarka-version" content="2026-11-13-story-branches-v4">
 <title>Мультиварка</title>
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 <script>
@@ -415,6 +415,49 @@ input[type=file]{max-width:100%;font-size:14px}
 .mascot-3{background-size:300% 200%;background-position:0% 100%}
 .mascot-4{background-size:300% 200%;background-position:50% 100%}
 .mascot-5{background-size:300% 200%;background-position:100% 100%}
+.story-choices{display:grid;grid-template-columns:1fr 1fr;gap:22px}
+.story-choice{padding:26px;min-height:240px;align-items:flex-start}
+.story-choice .asset{width:96px;height:96px}
+.story-choice h2{font-size:24px}
+.story-choice .hint{font-weight:500}
+.series-intro{display:flex;gap:18px;align-items:center;flex-wrap:wrap}
+.series-intro>.asset{width:86px;height:86px}
+.series-intro>div{flex:1;min-width:180px}
+.series-stages{display:flex;gap:10px;flex-wrap:wrap}
+.series-stages .tab{flex:1;min-width:140px}
+.series-question .opts{gap:10px}
+.series-question .sr-option{border-radius:16px;display:flex;flex-direction:column;gap:4px;flex:1 1 260px;min-width:0;max-width:100%;font-size:15px;line-height:1.35;padding:13px 15px}
+.sr-option small{font-size:13px;font-weight:400}
+.sr-own{width:100%;min-height:88px}
+.sr-controls{justify-content:space-between;align-items:center}
+.sr-controls .actions{justify-content:flex-end}
+.sr-summary{border:2px dashed #baa789;border-radius:16px;padding:13px}
+.sr-summary summary{font-weight:700;cursor:pointer;min-height:30px}
+.sr-summary-row{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr) auto;gap:12px;border-bottom:1px solid #e3d5bc;padding:10px 0;align-items:start;font-size:14px;overflow-wrap:anywhere}
+.sr-summary-row>b{font-weight:600}
+.sr-ai-mark{font-weight:600;font-size:14px;color:var(--ink);background:#fff2c8;border-radius:10px;padding:10px}
+.sr-option[aria-pressed=true]{background:var(--sun);color:var(--ink);box-shadow:2px 2px 0 var(--ink)}
+.series-title{width:100%;font-size:clamp(23px,3vw,32px)}
+.series-card .asset{width:80px;height:80px}
+.sr-stage-note{padding:12px 15px;background:var(--skysoft);border-radius:14px;font-size:14px}
+.sr-prompt textarea{min-height:270px}
+.sr-summary-link{font-size:13px}
+.sr-inline-options{display:flex;flex-wrap:wrap;gap:8px}
+.sr-settings-line{display:flex;gap:8px;flex-wrap:wrap}
+.sr-settings-line .chip{font-size:13px}
+.sr-card-grid{margin-bottom:10px}
+@media(max-width:620px){.story-choices{grid-template-columns:1fr;gap:18px}.story-choice{min-height:190px;padding:20px}.story-choice .asset{width:70px;height:70px}.story-choice h2{font-size:22px}.series-stages .tab{min-width:0;font-size:13px;padding:10px 8px}.series-stages{flex-wrap:nowrap;gap:7px}.series-question .sr-option{flex-basis:100%;font-size:14px;padding:12px}.sr-controls{gap:12px}.sr-controls>.actions{width:100%;justify-content:space-between}.sr-summary-row{grid-template-columns:minmax(0,1fr) auto;gap:8px}.sr-summary-row>b{grid-column:1/-1}.series-intro>.asset{width:60px;height:60px}}
+
+
+/* Navigation for the six series questionnaire blocks; uses existing palette. */
+.sr-block-nav{position:sticky;top:0;z-index:12;display:flex;gap:8px;overflow-x:auto;padding:12px 4px;background:var(--paper,#fff8e7);border-radius:14px;scrollbar-width:thin}
+.sr-block-nav .tab{white-space:nowrap;flex:0 0 auto;font-size:13px;padding:9px 12px}
+.sr-block-nav .tab[aria-selected="true"]{background:var(--sun);color:var(--ink)}
+.sr-block-nav small{margin-left:6px;opacity:.7}
+.sr-library{display:flex;flex-direction:column;gap:10px;padding:14px;border:2px solid var(--ink);border-radius:14px;background:var(--soft)}
+.sr-style-fields{display:grid;gap:20px}.sr-context{white-space:pre-wrap;max-height:160px;overflow:auto}
+@media(max-width:620px){.sr-block-nav .tab{font-size:12px;padding:8px 10px}.sr-block-nav{gap:6px}.sr-controls .btn{font-size:13px;padding:9px 10px}}
+
 </style>
 
 <div class="wrap" id="app"></div>
@@ -874,8 +917,9 @@ function cleanup(prev){
   const p=S.projects.find(x=>x.id===prev.pid);if(!p)return;
   if(prev.screen==='hero')p.heroes=p.heroes.filter(x=>x.id!==prev.iid||!itemEmpty(x));
   if(prev.screen==='loc')p.locations=p.locations.filter(x=>x.id!==prev.iid||!itemEmpty(x));
+  if(prev.screen==='series')p.serials=(p.serials||[]).filter(x=>x.id!==prev.sid||!seriesEmpty(x));
   if(prev.screen==='video')p.videos=p.videos.filter(x=>x.id!==prev.vid||!videoEmpty(x));
-  if(prev.screen==='project'&&p.fresh&&(p.name==='Новый заказчик'||!p.name.trim())&&!p.coverManual&&!p.note&&!p.heroes.length&&!p.locations.length&&!p.videos.length)S.projects=S.projects.filter(x=>x!==p);
+  if(prev.screen==='project'&&p.fresh&&(p.name==='Новый заказчик'||!p.name.trim())&&!p.coverManual&&!p.note&&!p.heroes.length&&!p.locations.length&&!p.videos.length&&!(p.serials||[]).length)S.projects=S.projects.filter(x=>x!==p);
   save();
 }
 S.projects.forEach(p=>{p.heroes=p.heroes.filter(x=>!itemEmpty(x));p.locations=p.locations.filter(x=>!itemEmpty(x));p.videos=p.videos.filter(x=>!videoEmpty(x))});
@@ -1650,6 +1694,7 @@ function mvPrepareState(state){
     if(!Array.isArray(p.heroes))p.heroes=[];
     if(!Array.isArray(p.locations))p.locations=[];
     if(!Array.isArray(p.videos))p.videos=[];
+    if(!Array.isArray(p.serials))p.serials=[];
   }
   return state;
 }
@@ -1872,6 +1917,7 @@ function normalizeBackup(raw){
         else{x.name=typeof x.name==='string'?x.name:'';if(!x.c||typeof x.c!=='object'||Array.isArray(x.c))x.c={};if(STYLE_RENAME[x.c.style])x.c.style=STYLE_RENAME[x.c.style];if(typeof x.c.arch==='string')x.c.arch=x.c.arch?[x.c.arch]:[];if(x.imageRef&&!validId(x.imageRef))throw new Error('Неверная ссылка на картинку.')}
       }
     }
+    validateSeriesBackup(p,validId);
     if(p.cover){if(p.cover.kind==='icon'){p.cover={kind:'icon',icon:Math.max(1,Math.min(48,Number(p.cover.icon)||1))}}else if(p.cover.kind!=='image'||!validId(p.cover.ref))throw new Error('Повреждена обложка проекта.')}
   }
   migrateHeroes(state);return mvPrepareState(state);
@@ -1954,6 +2000,266 @@ document.addEventListener('click',async e=>{
 },true);
 
 
+/* Мультиварка: согласованная анкета сериала, версия 2. */
+const SR_QUESTIONS=[{"n": "1", "q": "Есть ли у тебя идеи для сериала?", "group": 0, "options": ["Да, есть примерная идея", "Нет идеи, хочу придумать с нуля"], "max": 1, "hint": ""}, {"n": "2", "q": "Опиши свою задумку", "group": 0, "options": [], "max": 1, "hint": "Напиши, что ты уже представляешь. Можно коротко, отдельными мыслями или списком — как тебе удобно. Не обязательно придумывать всё до конца"}, {"n": "3", "q": "Что в твоей идее обязательно сохранить?", "group": 0, "options": ["Главного героя.", "То, что происходит с героем.", "То, чего герой хочет добиться.", "Других персонажей.", "Отношения между персонажами.", "Мир или место действия.", "Настроение задумки — например, смешное или трогательное.", "Всю задумку целиком.", "Ничего обязательного, можно всё менять"], "max": 8, "hint": "Можно выбрать несколько пунктов и дописать свой вариант."}, {"n": "3а", "q": "Что возьмём в основу сериала?", "group": 0, "options": ["Повседневная жизнь героя, его будни и приключения.", "Как герой пытается достичь своей цели.", "Отношения героя с окружающими.", "Как герой справляется с новой, непривычной жизнью.", "Как герой помогает другим и решает их проблемы.", "Как герой исследует необычный мир и раскрывает его тайны.", "Как герой пробует себя в разных занятиях и ищет своё место."], "max": 7, "hint": "Выбери, вокруг чего будут строиться истории: жизнь героя, его цель, отношения или что-то другое"}, {"n": "4", "q": "На какую аудиторию рассчитан сериал?", "group": 1, "options": ["Малыши 3–6 лет — простые события, понятные эмоции, много наглядного действия.", "Дети 7–11 лет — открытия, приключения, дружба и находчивость.", "Подростки 12–17 лет — самостоятельность, отношения, поиск своего места.", "Молодёжь 18–25 лет — первые большие решения, учёба, работа, отношения.", "Взрослые 26–45 лет — повседневная жизнь, желания, заботы и неожиданные приключения.", "Зрители 46 лет и старше — новый взгляд на жизнь, перемены, опыт и юмор.", "Вся семья — чтобы детям было интересно, а взрослые замечали свой смысл.", "Родители — узнаваемые ситуации про детей, семью и попытки всё успеть.", "Пары — совместная жизнь, привычки, разногласия и забота друг о друге.", "Люди с общим увлечением или профессией — истории, в которых зритель узнает своё сообщество."], "max": 10, "hint": ""}, {"n": "5", "q": "Для зрителей из каких стран ты создаёшь сериал?", "group": 1, "options": ["Русскоязычная аудитория", "Зрители из разных стран", "Зрители на другом языке — укажу на каком"], "max": 1, "hint": ""}, {"n": "7", "q": "В каком жанре будет сериал?", "group": 1, "options": ["Комедия — смешные ситуации и забавные поступки.", "Приключения — необычные события, путешествия и испытания.", "Драма — переживания, жизненные трудности и непростые решения.", "Мелодрама — любовь, чувства и отношения.", "Детектив — загадки, поиск улик и расследования.", "Фэнтези — волшебство, сказочные существа и магические миры.", "Научная фантастика — технологии будущего, космос и научные открытия.", "Боевик — погони, сражения и активное противостояние.", "Триллер — напряжение, опасность и ожидание неожиданного.", "Ужасы — пугающие события и страшные существа."], "max": 3, "hint": "Выбери, какие истории будем придумывать. Можно соединить несколько жанров."}, {"n": "8", "q": "Что зритель должен чувствовать во время просмотра?", "group": 1, "options": ["Любопытство — «И что же случится дальше?»", "Смех и веселье — «Вот это он выдал!»", "Сопереживание — «Ну давай, у тебя получится!»", "Напряжение — «Успеет или не успеет?»", "Удивление — «Такого я точно не ожидал!»", "Умиление — «Ну какой же он!»", "Тепло и уют — «Как хорошо и по-доброму».", "Восхищение — «Вот это герой! Как он это придумал!»", "Надежду — «Пусть в этот раз у него получится».", "Вдохновение и желание попробовать — «Я тоже так хочу! Хочется попробовать самому».", "Ностальгию — «А у меня ведь тоже так было».", "Узнавание себя — «Да это же прямо про меня! Я тоже так делаю».", "Романтические чувства — «Как же хочется, чтобы они были вместе».", "Ощущение волшебства — «Хочу ещё побыть в этом мире».", "Страх — «Страшно, но невозможно оторваться»."], "max": 3, "hint": "Выбери до трёх чувств или впечатлений. Это поможет подобрать события и атмосферу сериала"}, {"n": "8а", "q": "Что зрителю должно захотеться сделать после просмотра?", "group": 1, "options": ["Подписаться и ждать новые серии — «Хочу ещё!»", "Сразу включить следующую серию — «Нужно узнать, что будет дальше».", "Пересмотреть серию — «Хочу увидеть это ещё раз».", "Отправить серию друзьям — «Им точно стоит это посмотреть».", "Обсудить увиденное — «Интересно, что думают другие».", "Попробовать что-то самому — «Я тоже так хочу!»", "Задуматься о своей жизни — «А ведь у меня бывает похоже».", "Узнать больше о моём проекте или продукте — «Интересно, что ещё есть у автора»."], "max": 8, "hint": "Первый выбранный вариант — главная цель, остальные — дополнительные."}, {"n": "10", "q": "Кого сделаем главным героем?", "group": 2, "options": [], "max": 1, "hint": "Выбери одного героя, вокруг которого будет строиться история. Например, если сериал про семью, главным героем может быть ребёнок. Его семью, друзей или партнёров ты сможешь добавить ниже"}, {"n": "11", "q": "Что зритель должен подумать о герое при первой встрече?", "group": 2, "options": ["«Какой смешной!»", "«Какой милый!»", "«Какой необычный!»", "«Какой загадочный!»", "«Какой крутой!»", "«Ну и вредина!»", "«Да это же я!»", "«Хочется его поддержать!»"], "max": 2, "hint": "Выбери главное впечатление и, если хочешь, ещё одно."}, {"n": "12", "q": "Какой герой по характеру?", "group": 2, "options": ["Добрый.", "Весёлый.", "Смелый.", "Застенчивый.", "Любопытный.", "Ворчливый.", "Хитрый.", "Упрямый.", "Дерзкий.", "Наивный.", "Азартный.", "Невозмутимый.", "Мечтательный.", "Вспыльчивый.", "Самоуверенный.", "Ехидный."], "max": 4, "hint": ""}, {"n": "13", "q": "Чего герою может не хватать или чего он хочет больше всего?", "group": 2, "options": ["Друзей.", "Своего дома.", "Любви.", "Признания.", "Денег и спокойствия.", "Чувства, что он кому-то нужен.", "Смелости.", "Свободы."], "max": 1, "hint": ""}, {"n": "14", "q": "Какая собственная черта мешает герою?", "group": 2, "options": ["Гордыня — трудно признать ошибку.", "Упрямство — не хочет уступать.", "Доверчивость — слишком легко верит другим.", "Страх ошибиться — боится пробовать.", "Самоуверенность — переоценивает свои силы.", "Желание всем угодить — не умеет отказывать.", "Нетерпение — хочет всё и сразу.", "Лень — откладывает дела."], "max": 1, "hint": ""}, {"n": "15", "q": "Будет ли герой меняться от серии к серии?", "group": 2, "options": ["Остаётся неисправимым — что бы ни случилось, характер и привычки не меняются.", "Постепенно меняется — учится на своих ошибках и начинает поступать иначе.", "Меняется кардинально — события меняют его взгляды, характер и поступки."], "max": 1, "hint": ""}, {"n": "20", "q": "В каком мире живёт герой?", "group": 2, "options": ["Современный реалистичный мир — обычная жизнь, как вокруг нас.", "Сказочный мир — волшебство, чудеса и сказочные существа.", "Фантастический мир — необычные технологии, роботы и изобретения.", "Космический мир — другие планеты, звездолёты и инопланетяне.", "Мир прошлого — старинные города, замки, деревни и жизнь без современных удобств.", "Современный мир с волшебством — привычная жизнь, в которой случаются чудеса.", "Мир дикой природы — леса, джунгли, горы и жизнь вдали от людей.", "Подводный мир — моря, океаны и их обитатели."], "max": 1, "hint": ""}, {"n": "21", "q": "События будут происходить в одном месте или в нескольких?", "group": 2, "options": ["В одном месте — например, только в доме или в кафе.", "В нескольких постоянных местах — например, дома, на работе и во дворе.", "Всё время в новых местах — герой путешествует или часто куда-то попадает."], "max": 1, "hint": ""}, {"n": "16", "q": "Будет ли у главного героя постоянный спутник?", "group": 3, "options": ["Да.", "Нет.", "Пусть нейросеть решит."], "max": 1, "hint": ""}, {"n": "17", "q": "Кто этот спутник?", "group": 3, "options": [], "max": 20, "hint": "Можно добавить одного или нескольких спутников."}, {"n": "18", "q": "Какие отношения связывают героя и спутника?", "group": 3, "options": ["Дружат.", "Они семья.", "Влюблены друг в друга.", "Работают вместе.", "Вынуждены быть вместе.", "Соперничают.", "Один заботится о другом.", "Ссорятся, но всегда выручают друг друга."], "max": 8, "hint": ""}, {"n": "19", "q": "Нужны ли ещё постоянные персонажи?", "group": 3, "options": ["Нет, не нужны.", "Да, нужны — укажу кого.", "Да, нужны — пусть придумает нейросеть."], "max": 1, "hint": ""}, {"n": "22", "q": "Как серии будут связаны между собой?", "group": 4, "options": ["Каждая серия — отдельная история без общего сюжета. Герои те же, но каждый раз происходит что-то новое.", "Каждая серия — отдельная история с общим сюжетом на весь сериал. В каждой серии своя ситуация, а общая история постепенно развивается.", "Каждая серия — продолжение предыдущей. Одна история продолжается из серии в серию."], "max": 1, "hint": ""}, {"n": "23", "q": "В каком порядке зритель может смотреть серии?", "group": 4, "options": ["В любом порядке. Каждая серия понятна без просмотра предыдущих.", "Сначала первую, дальше — в любом порядке. Первая серия знакомит с героями и ситуацией.", "Строго по порядку. Чтобы понимать историю, нужно смотреть серии последовательно."], "max": 1, "hint": ""}, {"n": "24", "q": "За чем зритель будет следить весь сезон?", "group": 4, "options": ["Достигнет ли герой своей цели.", "Как изменятся отношения между героями.", "Как герой справляется с трудностями.", "Как герой меняется после пережитых событий.", "К чему приводят решения и поступки героя.", "Как складывается жизнь героя и его близких."], "max": 1, "hint": ""}, {"n": "24а", "q": "Что должно делать историю особенно интересной?", "group": 4, "options": ["Смешные провалы героя — старается как лучше, а получается нелепо.", "Неожиданные решения героя — выходит из ситуации необычным способом.", "Узнаваемые жизненные ситуации — зритель думает: «У меня тоже так бывает».", "Отношения между героями — споры, поддержка, обиды и примирения.", "Неожиданные повороты — события развиваются совсем не так, как ожидалось.", "Маленькие победы героя — удаётся то, что раньше не получалось.", "Трогательные поступки — герои проявляют заботу и помогают друг другу.", "Необычные приключения — привычная жизнь превращается в удивительную историю."], "max": 3, "hint": ""}, {"n": "41", "q": "С чего должна начинаться серия?", "group": 4, "options": ["Герой уже в неприятности", "происходит что-то невозможное", "герой делает рискованный выбор", "случается смешная ошибка", "появляется загадочная находка", "каждый раз по-разному"], "max": 1, "hint": ""}, {"n": "42", "q": "Чем чаще всего должна заканчиваться серия?", "group": 4, "options": ["Проблема решена и есть смешная точка", "тёплый или трогательный момент", "история закончена, но есть намёк на продолжение", "обрыв на самом интересном месте", "каждый раз по-разному"], "max": 1, "hint": ""}, {"n": "44", "q": "Какая маленькая деталь может повторяться в сериях?", "group": 4, "options": ["Жест", "привычка", "выражение лица", "короткая визуальная шутка", "финальный кадр"], "max": 1, "hint": ""}, {"n": "25", "q": "Чего точно не должно быть в сериале?", "group": 4, "options": ["Грустного финала.", "Жестокости.", "Страшных сцен.", "Унижения персонажей.", "Грубости и мата.", "Откровенных сцен.", "Нравоучений.", "Романтики.", "Особых запретов нет"], "max": 8, "hint": ""}, {"n": "9", "q": "В каком стиле будет сериал?", "group": 4, "options": [], "max": 1, "hint": "Стиль героев и окружения можно выбрать отдельно. Мир сериала от этого не меняется."}, {"n": "26", "q": "Ты планируешь один сезон сериала или несколько?", "group": 5, "options": ["Один сезон.", "Несколько сезонов.", "Пока не знаю."], "max": 1, "hint": ""}, {"n": "27", "q": "Сколько серий будет в этом сезоне?", "group": 5, "options": ["6.", "8.", "12.", "20."], "max": 1, "hint": ""}, {"n": "28", "q": "Сколько должна длиться серия?", "group": 5, "options": ["20–30 секунд.", "30–60 секунд.", "1–3 минуты."], "max": 1, "hint": ""}, {"n": "30", "q": "Сколько персонажей можно показывать одновременно в серии?", "group": 5, "options": ["Одного.", "Двоих.", "До трёх.", "Строгого ограничения нет."], "max": 1, "hint": ""}, {"n": "34", "q": "Нужно ли в сериале использовать голос?", "group": 5, "options": ["Нет, всё понятно через действия, мимику и жесты.", "Только короткие реплики.", "Обычные диалоги.", "Только закадровый рассказ."], "max": 1, "hint": ""}, {"n": "35", "q": "Нужен ли текст внутри видео?", "group": 5, "options": ["Нет, всё должно быть понятно без надписей.", "Только короткие надписи.", "Можно титры и пояснения."], "max": 1, "hint": ""}, {"n": "36", "q": "Какой звук нужно предусмотреть?", "group": 5, "options": ["Только звуки происходящего, музыку добавлю сам.", "Звуки происходящего и музыка.", "Полностью без звука."], "max": 1, "hint": ""}];
+const SR_GROUPS=["Стартовая идея", "Аудитория", "Главный герой", "Спутники и другие персонажи", "Настройка сериала", "Вид и формат"];
+const SR_FIXED="Ты — сценарист и режиссёр мультсериалов, которые набирают миллионы просмотров. Зрители ждут каждую новую серию с нетерпением, пересматривают и пересылают друзьям. Ты делаешь такие сериалы с помощью нейросетей.\n\nГЛАВНОЕ ПРО ОСНОВУ СЕРИАЛА\n\n— В основе каждой идеи — ЯРКАЯ ЖИЗНЕННАЯ СИТУАЦИЯ, в которую попадает герой: новая роль, перемена в жизни или неожиданное занятие, которое контрастирует с характером и образом героя.\n\n— Формула: знакомый зрителю герой + жизненная ситуация, которая совсем не подходит характеру и образу героя.\n\n— Идея должна быть понятна по названию за 3 секунды и сразу рисовать картинку в голове.\n\n— Направление (это примеры типа идей, не копируй их): герой открывает своё дело, выходит на пенсию, идёт учиться, переезжает, получает наследство, занимается спортом, становится блогером, берёт на себя чужую работу. Подбирай ситуации под выбранного персонажа и мир.\n\n— Из ситуации должны рождаться десятки серий про РАЗНЫЕ стороны жизни: клиенты и соседи, быт, проверки и конкуренты, праздники, поездки, неожиданные гости, чудеса и неприятности. Используй те стороны жизни, которые подходят миру и жанру.\n\n— НЕ делай идею про абстрактную тему («про самостоятельность», «про репутацию») — тема может быть внутри, но снаружи нужна конкретная ситуация.\n\n— НЕ строй сериал вокруг одного предмета или одного повторяющегося приёма. Оживший предмет может быть героем; ограничение касается однообразной основы сюжетов.\n\nПРАВИЛА РАЗРАБОТКИ\n\n— Сохраняй выбранного главного героя, задумку и обязательные элементы автора. Не меняй пол, вид или природу персонажа. Слово «герой» здесь означает главного персонажа любого пола и вида.\n\n— Используй желания и слабости героя, чтобы рождались поступки и ситуации. Если автор поручил придумать их самостоятельно, подбери их под остальные ответы.\n\n— Раскрывай контраст героя и ситуации в выбранном жанре. Смешная подача обязательна только там, где она соответствует ответам автора.\n\n— Связь серий, порядок просмотра, наличие общей линии, развитие героя, начало и конец эпизодов определяются ответами автора. Не добавляй общую линию при выборе самостоятельных историй без общего сюжета.\n\n— Фишка сериала — маленький повторяющийся штрих (жест, привычка, финальный кадр), а не сюжет каждой серии. Учитывай выбранный тип детали; если поручено, придумай конкретный штрих самостоятельно.\n\n— Главной цели добивайся через историю, действия героев и эмоциональный отклик. Не добавляй автоматически призывы подписаться, надписи или искусственные обрывы.\n\n— Учитывай длительность, допустимое число одновременно показанных персонажей, голос, текст и звук. Масштаб события должен подходить выбранному формату.\n\n— Стиль героев и стиль окружения могут различаться. При смешанном стиле согласуй масштаб, освещение, перспективу и тени; не меняй выбранную технику изображения.\n\n— Ведущую эмоцию серии подбери самостоятельно с учётом чувств зрителя, жанра и задумки. Она должна помогать следить за происходящим и ждать развязки.\n\n— Все 15 вариантов должны различаться основными ситуациями. Если автор просит сохранить всю задумку, предложи 15 разных вариантов развития в её рамках. Не выдавай смену названия, места или предмета за новую идею.\n\n— Сначала предложи 15 коротких идей, затем выбери 5 самых ярких и кратко раскрой их по заданным пунктам. Подробные сценарии серий, полные паспорта героев, раскадровку и план сезона на этом шаге не выдавай.";
+const SR_ENDING="КАК ОТВЕТИТЬ\n\nШаг 1. Придумай ровно 15 идей. Каждая — в одну строку в формате: «А что, если {главный герой} …?».\nВ каждой строке покажи конкретную неожиданную жизненную ситуацию, которая контрастирует с характером и образом героя. Учитывай выбранные жанры и обязательные элементы задумки.\nШаг 2. Выбери из них 5 самых ярких: тех, что понятны за 3 секунды, сразу рисуют картинку и дают десятки разных серий. Распиши только эти 5 — коротко:\n1. Название.\n2. Ситуация — одно предложение: в какую ситуацию попадает герой.\n3. О чём сериал — 1–2 предложения.\n4. Герои — по одной строке на каждого: кто это и какой он.\n5. Общая линия сезона — одно предложение.\n6. Фишка — одно предложение.\n7. Почему захочется подписаться — одно предложение.\nВ конце скажи одной фразой, какая идея самая сильная и почему.";
+const SR_AI='Поручить нейросети: подбери с учётом остальных ответов';
+function srGet(){const p=P();return p&&(p.serials||[]).find(x=>x.id===V.sid)}
+function seriesEmpty(s){return !((s.name||'').trim()||(s.concept||'').trim()||(s.adjustments||'').trim()||(s.plan||'').trim()||Object.entries(s.c||{}).some(([k,v])=>k!=='_schema'&&hasVal(v)))}
+function srValidId(s){return typeof s==='string'&&/^[A-Za-z0-9_-]{1,160}$/.test(s)}
+function srEnsure(s){
+ s.c=s.c||{};if(s.c._schema===2)return;
+ const old=s.c,c={_schema:2};s.legacySeriesAnswers=JSON.stringify(old);
+ const map={1:'4',2:'5',3:'7',4:'9',5:'8',8:'10',9:'11',10:'13',11:'14',12:'15',13:'16',14:'17',15:'18',16:'19',17:'20',18:'21',19:'22',20:'23',21:'25',22:'26',23:'27',24:'28',25:'34',26:'36',27:'1',28:'2',29:'3'};
+ for(const [o,n] of Object.entries(map))for(const k of ['q','own','ai'])if(old[k+o]!==undefined)c[k+n]=old[k+o];
+ if(old.q27==='Нет, придумать идеи с нуля')c.q1='Нет идеи, хочу придумать с нуля';
+ if(old.q27==='Да, у меня есть своя идея')c.q1='Да, есть примерная идея';
+ if(old.q13==='Нет, главный герой действует один')c.q16='Нет.';
+ if(old.q13==='Да, нужен постоянный спутник')c.q16='Да.';
+ if(old.q19==='Независимые истории с постоянными героями')c.q22=SR_QUESTIONS.find(q=>q.n==='22').options[0];
+ if(old.q19==='Каждая серия закончена, но есть общая линия сезона')c.q22=SR_QUESTIONS.find(q=>q.n==='22').options[1];
+ if(old.q19==='Одна непрерывная история с продолжениями')c.q22=SR_QUESTIONS.find(q=>q.n==='22').options[2];
+ if(old.q16==='Нет, достаточно главного героя и спутника')c.q19='Нет, не нужны.';
+ if(old.q4||old.own4){c.styleHero=old.own4||old.q4;c.styleWorld='@same';delete c.q9;delete c.own9}
+ if(old.q32)c.confirmSeason=old.q32;
+ s.c=c;s.gi=0;
+}
+function validateSeriesBackup(p,validId){
+ if(p.serials===undefined){p.serials=[];return}
+ if(!Array.isArray(p.serials))throw new Error('Повреждён список сериалов в копии.');
+ const ids=new Set();for(const s of p.serials){
+  if(!s||!validId(s.id)||ids.has(s.id))throw new Error('Повреждена карточка сериала.');ids.add(s.id);
+  for(const k of ['name','concept','adjustments','plan']){if(s[k]===undefined)s[k]='';if(typeof s[k]!=='string')throw new Error('Некорректный текст сериала в копии.')}
+  if(!s.c||typeof s.c!=='object'||Array.isArray(s.c))throw new Error('Некорректные ответы сериала в копии.');
+  for(const v of Object.values(s.c))if(!(typeof v==='string'||typeof v==='boolean'||typeof v==='number'||Array.isArray(v)&&v.every(x=>typeof x==='string')))throw new Error('Некорректный ответ в анкете сериала.');
+  s.stage=Math.min(2,Math.max(0,Number(s.stage)||0));s.gi=Math.max(0,Number(s.gi)||0);srEnsure(s);
+ }
+}
+function viewStoryChoice(){
+  const p=P();if(!p){V={screen:'projects'};return viewProjects()}
+  return `<button class="back" data-a="openP" data-id="${esc(p.id)}">‹ ${esc(p.name||'К проекту')}</button>${guideHTML()}<h2>Свари сюжет</h2><div class="story-choices"><button class="card story-choice" data-a="srShort">${asset(3)}<h2>Короткий сюжет</h2><span class="hint">Задумка → собираем сюжет → раскадровка. Один ролик с героями и локациями проекта.</span><span class="btn sun">Создать короткий сюжет</span></button><button class="card story-choice" data-a="srStart">${asset(15)}<h2>Придумать сериал</h2><span class="hint">Настройки сериала → поиск или развитие идеи → концепция → план сезона.</span><span class="btn sun">Придумать сериал</span></button></div><p class="local-note">Обе ветки выдают промпты. Результаты из нейросети можно вставить обратно и сохранить в проекте.</p>`;
+}
+function seriesCards(p){
+  const serials=p.serials||[];if(!serials.length)return '';
+  return `<div class="head"><h3>Сериалы (${serials.length})</h3><button class="btn small sun" data-a="srStart">＋ Сериал</button></div><div class="grid sr-card-grid">${serials.map(s=>`<button class="card series-card" data-a="srOpen" data-id="${esc(s.id)}">${asset(15)}<h3>${esc(s.name||'Сериал без названия')}</h3><span class="chip">Сериал</span><span class="meta">${(s.plan||'').trim()?'План сезона сохранён':(s.concept||'').trim()?'Концепция сохранена':'Настройки сериала'} · ${esc(s.updated||s.created||'')}</span></button>`).join('')}</div>`;
+}
+
+function srLibrary(kind='heroes'){
+ const here=P();return [here,...S.projects.filter(p=>p!==here)].filter(Boolean).flatMap(p=>(p[kind]||[]).map(h=>({p,h,value:'@'+(kind==='heroes'?'hero':'loc')+':'+p.id+':'+h.id})));
+}
+function srResolve(v,kind='heroes'){
+ const parts=String(v).split(':');if(parts.length===2)return srLibrary(kind).find(x=>x.h.id===parts[1]);
+ return srLibrary(kind).find(x=>x.p.id===parts[1]&&x.h.id===parts.slice(2).join(':'));
+}
+function srRawIdea(s){return s.c.q1==='Нет идеи, хочу придумать с нуля'?'':String(s.c.own2||s.c.q2||'').trim()}
+function srExtract(s){
+ // Conservative local suggestions only. The complete original idea always goes to GPT.
+ // No network calls and no invented facts; unparsed details remain in the source text.
+ const text=srRawIdea(s),out={};if(!text)return out;
+ let m=text.match(/(?:сериал|истори[яю])\s+(?:про|о)\s+([^,.;!?\n]{1,100})/iu)||text.match(/(?:главн[а-яё]*\s+геро[а-яё]*\s*[:—-]\s*)([^,.;!?\n]{1,80})/iu);
+ let hero=m&&m[1].split(/\s+(?:котор[а-яё]*|пыта[а-яё]*|работа[а-яё]*|хоч[а-яё]*|мечта[а-яё]*|жив[её]т|переезжа[а-яё]*|открыва[а-яё]*)\b/iu)[0].trim();
+ // JS word boundaries do not cover Cyrillic; split without relying on them.
+ if(hero)hero=hero.split(/\s+(?:котор[а-яё]*|пыта[а-яё]*|работа[а-яё]*|хоч[а-яё]*|мечта[а-яё]*|жив[её]т|переезжа[а-яё]*|открыва[а-яё]*)(?=\s|$)/iu)[0].trim();
+ if(hero){const forms={'кота':'Кот','коте':'Кот','кошку':'Кошка','кошке':'Кошка','женщину':'Женщина','женщине':'Женщина','мужчину':'Мужчина','мужчине':'Мужчина','бабу ягу':'Баба Яга','бабе яге':'Баба Яга','ребёнка':'Ребёнок','ребенка':'Ребёнок','ребёнке':'Ребёнок','пса':'Пёс','псе':'Пёс','собаку':'Собака','собаке':'Собака','дереве':'Дерево','доме':'Дом'};
+  const names=hero.split(/\s+и\s+/iu).map(x=>forms[x.toLowerCase()]||x).filter(Boolean);out.heroes=names; if(names.length===1)out['10']=names[0];
+ }
+ const desire=text.match(/(?:хочет|мечтает|пытается)\s+([^.!?\n]+)/iu);if(desire)out['13']=desire[0];
+ const worlds=[[/сказочн[а-яё]*\s+мир/iu,'Сказочный мир'],[/современн[а-яё]*\s+реалистичн[а-яё]*\s+мир/iu,'Современный реалистичный мир'],[/подводн[а-яё]*\s+мир/iu,'Подводный мир'],[/в космосе/iu,'Космический мир']];
+ for(const [r,v]of worlds)if(r.test(text)){out['20']=v;break}
+ return out;
+}
+function srSuggestion(s,n){return srExtract(s)[String(n)]||''}
+function srOwnValue(s,n){return String(s.c['own'+n]||'').trim()}
+function srTokenText(s,v){
+ if(String(v).startsWith('@hero:')){const x=srResolve(v);return x?(x.h.name||'Герой без имени')+'\n'+heroPassport(x.h):'Сохранённый герой недоступен; выбери другого в анкете.'}
+ if(String(v).startsWith('@idea:'))return String(v).slice(6);
+ return String(v||'');
+}
+function srSelectedHero(s){const v=s.c.q10;return typeof v==='string'&&v.startsWith('@hero:')?srResolve(v):null}
+function srLocationStyle(x){if(!x)return '';const c=x.h.c||{},parent=(x.p.locations||[]).find(l=>(l.name||'Без названия')===c.parent&&l.c&&lwhole(l.c));return val(c,'style')||(parent?val(parent.c,'style'):'')}
+function srStyle(s,kind){
+ const v=s.c[kind==='hero'?'styleHero':'styleWorld'];if(!v)return '';
+ if(v==='@same')return srStyle(s,'hero')||'Тот же стиль, что у героев; конкретный стиль подбери самостоятельно';
+ if(v==='@heroStyle'){const x=srSelectedHero(s);return x?heroInfo(x.h).style||'Стиль выбранного героя из его карточки':''}
+ if(v.startsWith('@loc:')){const x=srResolve(v,'locations');return x?srLocationStyle(x)||'Стиль выбранной локации':'Стиль выбранной локации'}
+ const st=STYLE_GROUPS.flatMap(g=>g[1]).find(x=>x.v===v);return st?st.v+' — '+st.p:v;
+}
+function srAnswer(s,n){
+ n=String(n);if(n==='49')return String(s.concept||'').trim();if(n==='50')return s.c.ai50?SR_AI:[(s.c.adjustKinds||[]).length&&'Что изменить: '+s.c.adjustKinds.join('; '),String(s.adjustments||'').trim()].filter(Boolean).join('\n');
+ if(s.c['ai'+n])return SR_AI;
+ if(n==='9')return [srStyle(s,'hero')&&'Стиль героев: '+srStyle(s,'hero'),srStyle(s,'world')&&'Стиль окружения: '+srStyle(s,'world'),s.c.styleNote&&'Дополнительно: '+s.c.styleNote].filter(Boolean).join('\n');
+ const value=s.c['q'+n],own=n==='19'&&value!=='Да, нужны — укажу кого.'?'':srOwnValue(s,n);
+ if(n==='16'&&value==='Пусть нейросеть решит.')return SR_AI;
+ const values=(Array.isArray(value)?value:[value]).filter(Boolean).map(v=>srTokenText(s,v));
+ if(n==='8а')return [values[0]&&'Главная цель: '+values[0],values.length>1&&'Дополнительные цели: '+values.slice(1).join('; '),own&&'Свой вариант: '+own].filter(Boolean).join('\n');
+ let result=[...values,own].filter(Boolean).join('; ');
+ if(n==='5'&&value&&value.includes('другом языке'))result=value+(own?' '+own:' (укажи язык)');
+ return result||srSuggestion(s,n);
+}
+function srHasOwnIdea(s){return !!srRawIdea(s)}
+function srNoCompanion(s){return s.c.q16==='Нет.'}
+function srNoArc(s){return String(s.c.q22||'').includes('без общего сюжета')}
+function srQuestionList(s){return SR_QUESTIONS.filter(q=>!(s.c.q1==='Нет идеи, хочу придумать с нуля'&&['2','3'].includes(q.n))&&!(srNoCompanion(s)&&['17','18'].includes(q.n))&&!(srNoArc(s)&&q.n==='24'))}
+function srChoices(s,q){
+ let vals=q.options.slice();
+ if(q.n==='11'){
+  const hero=srAnswer(s,'10').split('\n')[0];if(/баба[ -]?яга|женщина|кошка|девочка|девушка|мама|бабушка|собака/iu.test(hero))vals=vals.map(v=>v.replace(/Какой /g,'Какая ').replace('смешной','смешная').replace('милый','милая').replace('необычный','необычная').replace('загадочный','загадочная').replace('крутой','крутая'));
+ }
+ if(q.n==='10'||q.n==='17'){
+  const parsed=srExtract(s),names=parsed.heroes||[];
+  const candidates=q.n==='10'?names:names.filter(x=>srAnswer(s,'10')!==x);
+  return [...candidates.map(x=>({value:'@idea:'+x,label:x+' из твоей задумки',desc:''})),{value:'@library',label:'Выбрать готового героя из своих проектов.',desc:''},{value:'@own',label:'Свой вариант',desc:'Напиши, кто это. Можно одним словом.'}];
+ }
+ if(q.n==='19'&&s.c.q19&&!vals.includes(s.c.q19))vals.push(s.c.q19);
+ const value=s.c['q'+q.n];for(const x of (Array.isArray(value)?value:[value]))if(x&&!String(x).startsWith('@')&&!vals.includes(x))vals.push(x);
+ return vals.map(v=>{const [label,...rest]=v.split(' — ');return{value:v,label,desc:rest.join(' — ')}});
+}
+function srBlockNav(s){
+ const L=srQuestionList(s),q=L[Math.min(s.gi||0,L.length-1)];return `<nav class="sr-block-nav" aria-label="Блоки вопросов сериала">${SR_GROUPS.map((name,i)=>{const list=L.filter(x=>x.group===i),done=list.filter(x=>srAnswer(s,x.n)).length;return `<button class="tab" data-a="srBlock" data-id="${i}" aria-selected="${s.stage===0&&q.group===i}">${esc(name)}<small>${done}/${list.length}</small></button>`}).join('')}</nav>`;
+}
+function srSummary(s){const qs=srQuestionList(s);return `<details class="sr-summary"><summary>Мои ответы (${qs.filter(q=>srAnswer(s,q.n)).length} из ${qs.length})</summary>${qs.map(q=>`<div class="sr-summary-row"><b>${esc(q.q)}</b><span>${esc(srAnswer(s,q.n)||'Пока не выбрано')}</span><button class="btn small" data-a="srJump" data-id="${q.n}">Изменить</button></div>`).join('')}</details>`}
+function srStyleFields(s){
+ function catalog(selected){return `<option value="">Выбери стиль</option>${STYLE_GROUPS.map(([name,styles])=>`<optgroup label="${esc(name)}">${styles.map(st=>`<option value="${esc(st.v)}" ${st.v===selected?'selected':''}>${esc(st.v+' — '+st.h)}</option>`).join('')}</optgroup>`).join('')}`}
+ const h=srSelectedHero(s),hs=s.c.styleHero||'',ws=s.c.styleWorld||'';
+ return `<div class="sr-style-fields"><div class="field"><label for="sr-style-hero">Стиль героев</label><select id="sr-style-hero" data-sr="styleHero"><option value="">Выбери стиль</option>${h?`<option value="@heroStyle" ${hs==='@heroStyle'?'selected':''}>В стиле выбранного героя</option>`:''}${catalog(hs).replace('<option value="">Выбери стиль</option>','')}</select><input type="text" data-sr="styleHeroOwn" aria-label="Свой стиль героев" placeholder="Или опиши свой стиль героев" value="${esc(STYLES.includes(hs)||hs==='@heroStyle'?'':hs)}"></div><div class="field"><label for="sr-style-world">Стиль окружения</label><select id="sr-style-world" data-sr="styleWorld"><option value="">Выбери стиль</option><option value="@same" ${ws==='@same'?'selected':''}>В том же стиле, что и герои</option>${srLibrary('locations').filter(x=>srLocationStyle(x)).map(x=>`<option value="${esc(x.value)}" ${ws===x.value?'selected':''}>В стиле выбранной локации: ${esc(x.h.name||'Без названия')} — ${esc(x.p.name)}</option>`).join('')}${catalog(ws).replace('<option value="">Выбери стиль</option>','')}</select><input type="text" data-sr="styleWorldOwn" aria-label="Свой стиль окружения" placeholder="Или опиши свой стиль окружения" value="${esc(STYLES.includes(ws)||ws.startsWith('@')?'':ws)}"></div><div class="field"><label for="sr-style-note">Дополнительные характеристики изображения</label><input id="sr-style-note" type="text" data-sr="styleNote" placeholder="Например: карикатурный, милый, мрачный" value="${esc(s.c.styleNote||'')}"></div><div class="hint">Выбранных героев или локации потребуется подготовить в новом стиле, если он отличается от сохранённого. Существующие изображения не изменяются от одного выбора настройки.</div></div>`;
+}
+function srSettings(s){
+ const L=srQuestionList(s);s.gi=Math.max(0,Math.min(s.gi||0,L.length-1));const q=L[s.gi],n=q.n;
+ const selected=Array.isArray(s.c['q'+n])?s.c['q'+n]:[s.c['q'+n]],options=srChoices(s,q);
+ const mode=s.c['mode'+n]||'';const isHero=['10','17'].includes(n);
+ const otherLanguage=n==='5'&&String(s.c.q5||'').includes('другом языке');
+ const showOwn=n==='2'||!['1','16','26','9'].includes(n)&&(!isHero||mode==='own')&&(n!=='19'||s.c.q19==='Да, нужны — укажу кого.');
+ const ownLabel=n==='2'?'Твоя задумка':otherLanguage?'Укажи язык':n==='19'?'Кого добавить?':n==='8'?'Своё чувство или впечатление':'Свой вариант';
+ const suggestion=srSuggestion(s,n);
+ let field=n==='9'?srStyleFields(s):`<div class="opts">${options.map(o=>`<button class="opt sr-option" data-a="srOption" data-n="${n}" data-id="${esc(o.value)}" aria-pressed="${o.value==='@library'?mode==='library':o.value==='@own'?mode==='own':selected.includes(o.value)||(!s.c['q'+n]&&!s.c['ai'+n]&&suggestion&&o.value==='@idea:'+suggestion)}"><b>${esc(o.label)}</b>${o.desc?`<small>${esc(o.desc)}</small>`:''}</button>`).join('')}</div>`;
+ if(isHero&&mode==='library'){
+  const library=srLibrary().filter(x=>n!=='17'||x.value!==s.c.q10);
+  field+=`<div class="sr-library"><b>Герои из своих проектов</b>${library.length?library.map(x=>`<button class="opt sr-option" data-a="srOption" data-n="${n}" data-id="${esc(x.value)}" aria-pressed="${selected.includes(x.value)}"><b>${esc(x.h.name||'Герой без имени')}</b><small>${esc(x.p.name||'Проект без названия')}${x.p===P()?' · текущий проект':''}</small></button>`).join(''):'<div class="hint">Готовых героев пока нет. Укажи свой вариант или поручите выбор нейросети.</div>'}</div>`;
+ }
+ if(isHero&&(selected.some(v=>String(v).startsWith('@hero:'))||n==='17'&&srOwnValue(s,n)))field+=`<div class="howto"><b>Выбрано</b><div class="sr-context">${esc(srAnswer(s,n))}</div></div>`;
+ if(showOwn)field+=`<div class="field"><label for="sr-own-${n}">${ownLabel}</label><textarea id="sr-own-${n}" data-sr="own" data-n="${n}" placeholder="${esc(n==='2'?'Можно коротко, отдельными мыслями или списком':n==='27'?'Например: 12':n==='28'?'Например: 20–30 секунд':otherLanguage?'Например: испанский':isHero?'Например: кот, Баба Яга, пуфик':'Напиши свой ответ')}" aria-label="${ownLabel}">${esc(srOwnValue(s,n))}</textarea></div>`;
+ if(suggestion&&!s.c['q'+n]&&!srOwnValue(s,n)&&!s.c['ai'+n])field+=`<div class="sr-ai-mark">Из твоей задумки: ${esc(suggestion)}. Можно оставить или выбрать другой ответ.</div>`;
+ if(n==='5'&&s.c.q5==='Зрители из разных стран')field+='<div class="hint">История должна быть понятна зрителям разных стран. Голос и надписи задаются отдельно.</div>';
+ const canAI=!['1','2','3','16','19','26','34','35','36','25'].includes(n);
+ return `<section class="panel series-question"><div class="head"><span class="badge">${esc(SR_GROUPS[q.group])}</span><span class="meta">Вопрос ${s.gi+1} из ${L.length}</span></div><div class="meter small"><i style="width:${Math.round((s.gi+1)/L.length*100)}%;background:var(--pink)"></i></div><h2>${esc(q.q)}</h2>${q.hint?`<div class="hint">${esc(q.hint)}</div>`:''}${q.max>1?`<div class="hint">${n==='8а'?'Первый выбранный ответ — главная цель.':n==='11'?'Первый выбранный ответ — главное впечатление.':`Можно выбрать ${q.max>=7?'несколько вариантов':'до '+q.max+' вариантов'}.`}</div>`:''}${field}${s.c['ai'+n]?'<div class="sr-ai-mark">Поручено нейросети. Она подберёт ответ при выполнении итогового промпта.</div>':''}<div class="actions sr-controls"><button class="btn" data-a="srBack" ${s.gi===0?'disabled':''}>‹ Назад</button><span class="actions">${canAI?`<button class="btn" data-a="srDefer" data-id="${n}">Не знаю — реши за меня</button>`:''}<button class="btn pink" data-a="srNext">${s.gi===L.length-1?'К идеям ›':'Дальше ›'}</button></span></div></section>${srSummary(s)}`;
+}
+function srBrief(s){return srQuestionList(s).map(q=>`${q.q}\n${srAnswer(s,q.n)||'Поручено нейросети: подбери с учётом остальных настроек.'}`).join('\n\n')}
+function srVariable(s){
+ const A=n=>srAnswer(s,n)||SR_AI, line=(label,n)=>'— '+label+': '+A(n);
+ const goals=Array.isArray(s.c['q8а'])?s.c['q8а']:s.c['q8а']?[s.c['q8а']]:[];
+ const goalOwn=srOwnValue(s,'8а');
+ const preserved=srAnswer(s,'3'),idea=srRawIdea(s);
+ const hero=srSelectedHero(s);
+ return [
+ 'ЗАДУМКА АВТОРА',line('Отправная точка','1'),idea&&'— Задумка (исходный текст): '+idea,
+ idea&&preserved&&!preserved.includes('Ничего обязательного')&&'— Обязательно сохранить: '+preserved+'\nСвяжи выбранные пункты с явно указанными сведениями из исходной задумки. Не выдумывай отсутствующие обязательные условия.',
+ idea&&'Распредели явно указанные сведения задумки по герою, ситуации, желанию, спутникам, отношениям и миру. Не теряй исходные действия и детали. Явные ответы ниже уточняют задумку; обязательные элементы сохраняй. Недостающие сведения подбери по контексту, не задавая дополнительных вопросов.',
+ 'ГЛАВНАЯ ЦЕЛЬ','— После просмотра зритель должен захотеть: '+(goals[0]||goalOwn||SR_AI),
+ (goals.length>1||goals.length&&goalOwn)&&'— Дополнительные цели: '+[...goals.slice(1),goalOwn].filter(Boolean).join('; '),
+ 'О СЕРИАЛЕ',line('О чём','3а'),line('Для кого','4'),line('Языковая аудитория','5'),line('Жанр','7'),line('Что зритель должен чувствовать чаще всего','8'),
+ 'Неуказанные поля сначала заполни явными сведениями из задумки и сохранённых карточек. Только отсутствующие сведения подбери самостоятельно. Ответы «Поручить нейросети» не отменяют уже указанные автором факты.',
+ 'ГЕРОИ',line('Главный герой','10'),hero&&'Сохранённая карточка задаёт выбранного персонажа. Явные настройки анкеты уточняют его; выбранный ниже стиль используется для новых материалов.',line('При первой встрече зритель должен подумать','11'),line('Характер','12'),line('Чего герою не хватает или чего герой хочет больше всего','13'),line('Какая собственная черта мешает герою','14'),line('Как герой меняется','15'),
+ srNoCompanion(s)?'— Постоянные спутники: спутников нет.':s.c.q16==='Пусть нейросеть решит.'||s.c.ai16?'— Постоянные спутники: реши, нужны ли; если нужны, учитывай указанных автором: '+A('17')+'\n— Отношения героя и спутников: '+A('18'):'— Постоянные спутники: '+A('17')+'\n— Отношения героя и спутников: '+A('18'),
+ line('Другие постоянные персонажи','19'),
+ 'МИР И СЕРИИ',line('Мир','20'),line('Места действия','21'),line('Как связаны серии','22'),line('Порядок просмотра','23'),!srNoArc(s)&&line('Общая линия сезона','24'),line('Что делает историю особенно интересной','24а'),line('Начало серии','41'),line('Финал серии','42'),line('Маленький повторяющийся штрих','44'),line('Чего не должно быть','25'),
+ 'ВИЗУАЛЬНЫЙ СТИЛЬ','— Стиль героев: '+(s.c.ai9?SR_AI:srStyle(s,'hero')||SR_AI),'— Стиль окружения: '+(s.c.ai9?SR_AI:srStyle(s,'world')||SR_AI),s.c.styleNote&&'— Дополнительные характеристики изображения: '+s.c.styleNote,
+ 'ФОРМАТ',line('Сезонов','26'),'Сейчас разрабатываем текущий сезон; при нескольких сезонах — первый.',line('В этом сезоне','27'),line('Длительность серии','28'),line('Одновременно показывать персонажей','30'),line('Голос','34'),line('Текст в кадре','35'),line('Звук и музыка','36'),
+ String(s.c.q34||'').startsWith('Нет,')&&'Голос запрещён: никаких реплик, речи, диалогов, закадрового голоса и вокала. Всё понятно через действия, мимику и жесты.',
+ String(s.c.q35||'').startsWith('Нет,')&&'Не добавляй текст в кадр: надписи, субтитры и титры.',
+ s.c.q36==='Только звуки происходящего, музыку добавлю сам.'&&'Музыка, фоновые мелодии и пение запрещены. Разрешены только немелодические звуки происходящего; музыку автор добавит самостоятельно.',
+ s.c.q36==='Полностью без звука.'&&'Полностью без звука: никакой музыки, голосов и звуковых эффектов. Это ограничение имеет приоритет над настройкой голоса.'
+ ].filter(Boolean).join('\n\n');
+}
+function srConceptPrompt(s){
+ const hero=srSelectedHero(s);const name=hero?hero.h.name||'выбранный герой':srAnswer(s,'10').split('\n')[0]||'главный герой';
+ return SR_FIXED+'\n\n'+srVariable(s)+'\n\n'+SR_ENDING.replace('{главный герой}',name)+'\n\nВ шаге 2 пункт «Общая линия сезона» учитывает выбранную связь серий: при независимых историях без общего сюжета укажи, что общей линии нет. Пункт о подписке не должен добавлять запрещённые надписи, голосовые призывы или менять выбранную главную цель.';
+}
+function srSeasonPrompt(s){
+ if(!(s.concept||'').trim())return '';
+ return `Ты — сценарист и режиссёр мультсериалов. Составь подробный, но компактный план сезона по выбранной концепции.\n\nВЫБРАННАЯ КОНЦЕПЦИЯ\n${s.concept.trim()}\nСпособ выбора: ${s.c.ideaMode||'Выбрана идея из ответа нейросети'}.\n\nПОПРАВКИ АВТОРА\n${srAnswer(s,'50')||'Концепцию оставить без изменений.'}\n\n${srVariable(s)}\n\nПРАВИЛА\nСохраняй задумку, обязательные элементы, главную цель и ограничения автора. Количество серий: ${srAnswer(s,'27')||'подбери подходящее количество'}. Длительность: ${srAnswer(s,'28')||'подбери по остальным настройкам'}. Число одновременно показанных персонажей — строго по настройкам автора. Не навязывай ограничение 1–3, если выбран другой ответ.\nЕсли общая линия предусмотрена, развивай цель или отношения через сезон и дай завершение, соответствующее жанру и запретам. Если общей линии нет, делай самостоятельные разнообразные истории без сквозного сюжета. Соблюдай выбранный порядок просмотра.\nКаждая серия раскрывает другую сторону жизни героя. Начало, финал, повторяющийся штрих и то, что делает историю интересной, — по ответам автора. Смешные провалы не обязательны для всех жанров. Не навязывай искусственные обрывы или призывы подписаться. Стиль героев и окружения может различаться. Сохраняй выбранные голос, текст и звук. Не создавай картинки и видео.\n\nФОРМАТ ОТВЕТА — ТЕКСТОМ\nСерия [номер]. [Название]\nГде происходит: …\nНачало: …\nЧто происходит: …\nТрудность героя: …\nФинал: …\nШаг общей линии: … (или «независимая история»).\nКаждый пункт короткий. После всех серий опиши общую линию в 2–3 предложениях, если она есть. Идею следующего сезона предложи, только если автор планирует несколько сезонов.`;
+}
+function srConcept(s){return `<div class="sr-stage-note">Придумываем 15 идей и раскрываем 5 лучших. Скопируй промпт в нейросеть, затем вставь выбранную идею ниже. Приложение само к нейросети не обращается.</div><div class="panel sr-prompt">${outBox('sr-concept-prompt','Промпт: 15 идей сериала и 5 лучших',srConceptPrompt(s))}</div><section class="panel"><div class="field"><label for="sr-concept">Какую идею берём в работу?</label><div class="opts">${['Выбрать номер из 15','Объединить элементы нескольких идей — укажу какие','Вставить свой доработанный вариант','Ни одна не подошла'].map(v=>`<button class="opt" data-a="srIdeaMode" data-id="${esc(v)}" aria-pressed="${s.c.ideaMode===v}">${esc(v)}</button>`).join('')}</div><span class="hint">Вставь выбранную концепцию целиком: название, ситуацию, героев, общую линию и фишку. Если выбираешь номер или объединяешь идеи, приложи их описания — так следующий промпт сохранит все детали.</span><textarea id="sr-concept" data-sr="concept" style="min-height:240px" placeholder="Выбранная идея или несколько идей с описаниями">${esc(s.concept||'')}</textarea></div><div class="field"><label for="sr-adjust">Что ты хочешь изменить в выбранной идее?</label><div class="opts">${['Ничего','Героя','Ситуацию','Отношения','Место','Юмор','Общую цель','Свой вариант'].map(v=>`<button class="opt" data-a="srAdjust" data-id="${v}" aria-pressed="${(s.c.adjustKinds||[]).includes(v)}">${v}</button>`).join('')}</div><textarea id="sr-adjust" data-sr="adjustments" placeholder="Можно оставить пустым, если всё подходит">${esc(s.adjustments||'')}</textarea><div class="actions"><button class="btn small" data-a="srNoChanges">Оставить без изменений</button><button class="btn small" data-a="srDefer" data-id="50">Не знаю — реши за меня</button></div>${s.c.ai50?'<span class="sr-ai-mark">Нейросеть предложит улучшения, сохранив суть идеи.</span>':''}</div><div class="actions"><button class="btn" data-a="srStage" data-id="0">‹ Вернуться к вопросам</button><button class="btn pink" data-a="srToSeason">Сохранить идею и перейти к сезону ›</button></div></section>`}
+function srSeason(s){return `<section class="panel"><h2>Оставляем эти настройки сезона?</h2><div class="sr-settings-line"><span class="chip">Серий: ${esc(srAnswer(s,'27')||'подберёт нейросеть')}</span><span class="chip">Длительность: ${esc(srAnswer(s,'28')||'подберёт нейросеть')}</span></div><div class="hint">Проверь также голос, текст, звук и ограничения в своих ответах. Настройки можно изменить, не теряя идею и сохранённый план.</div><div class="actions"><button class="btn sun" data-a="srConfirm">Да, перейти к плану сезона</button><button class="btn" data-a="srEditFormat">Изменить настройки</button></div></section>${s.c.confirmSeason?`<section class="panel sr-prompt">${outBox('sr-season-prompt','Промпт: составить план сезона',srSeasonPrompt(s))}<div class="hint">Отправь промпт в нейросеть и вставь результат в поле ниже.</div></section>`:''}<section class="panel"><div class="field"><label for="sr-plan">План сезона из нейросети</label><textarea id="sr-plan" data-sr="plan" style="min-height:280px" placeholder="Вставь план серий, чтобы сохранить его в проекте">${esc(s.plan||'')}</textarea></div><button class="btn lime" data-a="srFinish">Сохранить и вернуться к проекту</button></section>${srSummary(s)}`}
+function viewSeries(){
+ const s=srGet();if(!s){V={screen:'project',pid:V.pid,tab:'videos'};return viewProject()}
+ srEnsure(s);s.stage=s.stage||0;
+ return `<button class="back" data-a="srProject">‹ Сюжеты проекта «${esc(P().name)}»</button>${guideHTML()}<section class="panel"><div class="series-intro">${asset(15)}<div><span class="badge">Придумать сериал</span><input class="title-input series-title" data-sr="name" aria-label="Название сериала" placeholder="Название сериала" value="${esc(s.name||'')}"></div><span id="saved" class="saved">Сохранено ✓</span></div><nav class="series-stages" aria-label="Этапы сериала">${['Вопросы','Идеи','План сезона'].map((t,i)=>`<button class="tab" data-a="srStage" data-id="${i}" aria-selected="${s.stage===i}">${i+1}. ${t}</button>`).join('')}</nav></section>${srBlockNav(s)}${s.stage===0?srSettings(s):s.stage===1?srConcept(s):srSeason(s)}<div class="actions">${V.srConfirm?'<span class="hint">Удалить сериал без возврата?</span><button class="btn small danger" data-a="srDelete">Да, удалить</button><button class="btn small" data-a="srDeleteCancel">Отмена</button>':'<button class="btn small danger" data-a="srDeleteAsk">Удалить сериал</button>'}</div>`;
+}
+function srPersist(s){s.updated=today();save()}
+function srRefreshPrompts(){const s=srGet();if(!s)return;const a=document.getElementById('sr-concept-prompt');if(a)a.value=srConceptPrompt(s);const b=document.getElementById('sr-season-prompt');if(b)b.value=srSeasonPrompt(s)}
+function srInvalidate(s){delete s.c.confirmSeason}
+function srNavigate(s,n){const L=srQuestionList(s);s.stage=0;s.gi=Math.max(0,L.findIndex(q=>q.n===String(n)))}
+function srValidAnswer(s,n){
+ if(!srAnswer(s,n))return false;
+ if(n==='5'&&String(s.c.q5||'').includes('другом языке')&&!srOwnValue(s,n))return false;
+ if(n==='19'&&s.c.q19==='Да, нужны — укажу кого.'&&!srOwnValue(s,n))return false;
+ if(n==='9'&&!s.c.ai9&&(!srStyle(s,'hero')||!srStyle(s,'world')))return false;
+ if(n==='27'&&srOwnValue(s,n)&&(!/^\d{1,4}$/.test(srOwnValue(s,n))||Number(srOwnValue(s,n))<1))return false;
+ return true;
+}
+function srAdvance(s){const L=srQuestionList(s);if(s.gi<L.length-1)s.gi++;else s.stage=1;srPersist(s);render();window.scrollTo(0,0)}
+document.addEventListener('input',e=>{
+ const kind=e.target.dataset.sr;if(!kind)return;const s=srGet();if(!s)return;srEnsure(s);
+ if(kind==='own'){
+  const n=e.target.dataset.n;s.c['own'+n]=e.target.value;delete s.c['ai'+n];
+  if(e.target.value.trim()&&['3','25'].includes(n)){const excluded=n==='3'?'Ничего обязательного, можно всё менять':'Особых запретов нет';s.c['q'+n]=(Array.isArray(s.c['q'+n])?s.c['q'+n]:[]).filter(v=>v!==excluded)}
+  const q=SR_QUESTIONS.find(x=>x.n===n);if(q&&q.max===1&&!['5','19','9'].includes(n))delete s.c['q'+n];
+ }else if(['styleHero','styleWorld','styleHeroOwn','styleWorldOwn','styleNote'].includes(kind)){
+  const key=kind.replace('Own','');s.c[key]=e.target.value;delete s.c.ai9;
+ }else if(['name','concept','adjustments','plan'].includes(kind)){s[kind]=e.target.value;if(kind==='adjustments')delete s.c.ai50}
+ if(kind!=='plan'&&kind!=='name')srInvalidate(s);
+ const status=document.getElementById('saved');if(status)status.textContent='Сохраняю…';srPersist(s);srRefreshPrompts();
+});
+document.addEventListener('change',e=>{if(['styleHero','styleWorld'].includes(e.target.dataset.sr)){const s=srGet();if(s)keepScroll(render)}});
+document.addEventListener('click',e=>{
+ const t=e.target.closest('[data-a]');if(!t)return;const a=t.dataset.a;
+ if(!a.startsWith('sr')&&!['newV','storyH'].includes(a))return;
+ e.preventDefault();e.stopImmediatePropagation();const p=P();if(!p)return;const s=srGet(),id=t.dataset.id;
+ if(s)srEnsure(s);
+ if(a==='newV'||a==='storyH'){const origin=a==='storyH'?V.iid:undefined;p.fresh=false;save();go({screen:'storyChoice',pid:p.id,originHero:origin});return}
+ if(a==='srShort'){const origin=V.originHero,v={id:uid(),title:'',updated:today(),steps:origin?{zad:{c:{heroes:[origin]}}}:{}};p.videos.unshift(v);save();go({screen:'video',pid:p.id,vid:v.id,step:0});return}
+ if(a==='srStart'){
+  const x={id:uid(),name:'',c:{_schema:2},created:today(),updated:today(),gi:0,stage:0,concept:'',adjustments:'',plan:''};if(V.originHero)x.c.q10='@hero:'+p.id+':'+V.originHero;
+  p.serials=p.serials||[];p.serials.unshift(x);p.fresh=false;save();go({screen:'series',pid:p.id,sid:x.id});return;
+ }
+ if(a==='srOpen'){go({screen:'series',pid:p.id,sid:id});return}if(!s)return;
+ if(a==='srProject'||a==='srFinish'){saveNow();go({screen:'project',pid:p.id,tab:'videos'});return}
+ if(a==='srDeleteAsk'){V.srConfirm=true;render();return}if(a==='srDeleteCancel'){V.srConfirm=false;render();return}
+ if(a==='srDelete'){p.serials=p.serials.filter(x=>x.id!==s.id);save();go({screen:'project',pid:p.id,tab:'videos'});return}
+ if(a==='srStage'){if(id==='2'&&!(s.concept||'').trim()){toast('Сначала вставь выбранную идею на втором этапе.');s.stage=1}else s.stage=+id;srPersist(s);render();window.scrollTo(0,0);return}
+ if(a==='srBlock'){const q=srQuestionList(s).find(x=>x.group===+id);if(q)srNavigate(s,q.n);srPersist(s);render();window.scrollTo(0,0);return}
+ if(a==='srOption'){
+  const n=t.dataset.n,q=SR_QUESTIONS.find(q=>q.n===n);if(!q)return;
+  if(id==='@library'||id==='@own'){s.c['mode'+n]=id==='@library'?'library':'own';srPersist(s);keepScroll(render);return}
+  if(!srChoices(s,q).some(o=>o.value===id)&&!srLibrary().some(x=>x.value===id))return;
+  const exclusive=n==='3'?'Ничего обязательного, можно всё менять':n==='25'?'Особых запретов нет':null;
+  if(q.max>1){let arr=Array.isArray(s.c['q'+n])?s.c['q'+n]:s.c['q'+n]?[s.c['q'+n]]:[];
+   if(arr.includes(id))arr=arr.filter(x=>x!==id);else{if(exclusive){if(id===exclusive)arr=[];else arr=arr.filter(x=>x!==exclusive)}if(arr.length>=q.max){toast('Можно выбрать до '+q.max+' вариантов.');return}arr.push(id)}s.c['q'+n]=arr;
+  }else{s.c['q'+n]=s.c['q'+n]===id?'':id;if(!['5','19'].includes(n))delete s.c['own'+n]}
+  if(id===exclusive)delete s.c['own'+n];
+  delete s.c['ai'+n];srInvalidate(s);
+  if(n==='10'&&s.c.styleHero==='@heroStyle'&&!srSelectedHero(s))delete s.c.styleHero;
+  srPersist(s);keepScroll(render);return;
+ }
+ if(a==='srDefer'){
+  s.c['ai'+id]=true;delete s.c['q'+id];delete s.c['own'+id];srInvalidate(s);
+  if(id==='50'){s.adjustments='';srPersist(s);render();return}
+  srAdvance(s);return;
+ }
+ if(a==='srNext'){const q=srQuestionList(s)[s.gi||0];if(!srValidAnswer(s,q.n)){toast(q.n==='5'?'Укажи язык.':q.n==='19'?'Напиши, кого добавить.':q.n==='9'?'Выбери стиль героев и окружения.':q.n==='27'?'Укажи целое положительное число серий.':'Выбери ответ, напиши свой или поручите нейросети.');return}srAdvance(s);return}
+ if(a==='srBack'){s.gi=Math.max(0,(s.gi||0)-1);srPersist(s);render();window.scrollTo(0,0);return}
+ if(a==='srJump'){srNavigate(s,id);srPersist(s);render();window.scrollTo(0,0);return}
+ if(a==='srNoChanges'){s.adjustments='';s.c.adjustKinds=['Ничего'];delete s.c.ai50;srInvalidate(s);srPersist(s);render();return}
+ if(a==='srIdeaMode'){s.c.ideaMode=id;srInvalidate(s);srPersist(s);keepScroll(render);return}
+ if(a==='srAdjust'){let arr=s.c.adjustKinds||[];if(id==='Ничего'){arr=['Ничего'];s.adjustments=''}else arr=arr.includes(id)?arr.filter(x=>x!==id):[...arr.filter(x=>x!=='Ничего'),id];s.c.adjustKinds=arr;delete s.c.ai50;srInvalidate(s);srPersist(s);keepScroll(render);return}
+ if(a==='srToSeason'){if(!(s.concept||'').trim()){toast('Вставь выбранную идею из ответа нейросети.');return}s.stage=2;srPersist(s);render();window.scrollTo(0,0);return}
+ if(a==='srConfirm'){s.c.confirmSeason=true;srPersist(s);render();return}
+ if(a==='srEditFormat'){srNavigate(s,'26');srInvalidate(s);srPersist(s);render();window.scrollTo(0,0);return}
+},true);
+
+
 function header(){return `<header class="top"><div class="brand"><div class="logo">${LOGO}</div><div><h1>Мультиварка</h1><div class="tag">Варим мультики по шагам</div></div></div><div class="topbtns"><button class="btn small" data-a="fs" title="На весь экран" aria-label="На весь экран"><span aria-hidden="true">⛶</span><span class="btn-text">На весь экран</span></button><button class="btn small" data-a="backup" title="Резервная копия" aria-label="Резервная копия"><span aria-hidden="true">💾</span><span class="btn-text">Резервная копия</span></button></div></header>`}
 
 function render(){
@@ -1962,6 +2268,8 @@ function render(){
   if(V.screen==='help')h+=viewHelp();
   else if(V.screen==='projects')h+=viewProjects();
   else if(V.screen==='library')h+=viewGlobalLibrary();
+  else if(V.screen==='storyChoice')h+=viewStoryChoice();
+  else if(V.screen==='series')h+=viewSeries();
   else if(V.screen==='project')h+=viewProject();
   else if(V.screen==='video')h+=viewVideo();
   else h+=viewItem();
@@ -1972,7 +2280,7 @@ function render(){
 }
 
 function viewProjects(){
-  const cards=S.projects.map(p=>`<button class="card project-card" data-a="openP" data-id="${esc(p.id)}"><span class="cover-art">${coverHTML(p)}</span><h3>${esc(p.name||'Без названия')}</h3><div class="meta">${esc(p.note||'Проект анимационного ролика')}</div><div class="chips"><span class="chip">🎬 Сюжетов: ${p.videos.length}</span><span class="chip" aria-label="Героев: ${p.heroes.length}">Герои: ${p.heroes.length}</span><span class="chip" aria-label="Локаций: ${p.locations.length}">Места: ${p.locations.length}</span></div></button>`).join('');
+  const cards=S.projects.map(p=>`<button class="card project-card" data-a="openP" data-id="${esc(p.id)}"><span class="cover-art">${coverHTML(p)}</span><h3>${esc(p.name||'Без названия')}</h3><div class="meta">${esc(p.note||'Проект анимационного ролика')}</div><div class="chips"><span class="chip">🎬 Сюжетов: ${p.videos.length+(p.serials||[]).length}</span><span class="chip" aria-label="Героев: ${p.heroes.length}">Герои: ${p.heroes.length}</span><span class="chip" aria-label="Локаций: ${p.locations.length}">Места: ${p.locations.length}</span></div></button>`).join('');
   return `${guideHTML('home')}<button class="btn helpbtn" data-a="help">📖 Как пользоваться Мультиваркой</button><div class="head section-head"><h2>Мои проекты</h2><span class="meta">Один проект — один заказчик</span></div><div class="grid project-grid">${cards}<button class="card add" data-a="newP"><span class="add-symbol" aria-hidden="true">＋</span><span>Новый проект</span></button></div>${mvQuickNav()}<p class="local-note">Проекты и ваши изображения сохраняются на этом устройстве. Для переноса используйте «Резервную копию».</p>`;
 }
 
@@ -1980,7 +2288,7 @@ function viewProject(){
   const p=P();if(!p){V={screen:'projects'};return viewProjects()}
   const tab=V.tab||'videos';let body='';
   if(tab==='videos'){
-    body=`<div class="grid">${p.videos.map((v,i)=>{const next=STEPS.find(s=>!stepDone(v,s));return `<button class="card story-card" data-a="openV" data-id="${esc(v.id)}">${asset(3+i%2)}<h3>${esc(v.title||'Без названия')}</h3><div class="dots" aria-label="Готово шагов: ${STEPS.filter(s=>stepDone(v,s)).length} из ${STEPS.length}">${STEPS.map(s=>`<span class="dot ${stepDone(v,s)?'on':''}"></span>`).join('')}</div><div class="meta">${next?`Дальше: ${next.n}. ${next.t}`:'Все шаги готовы 🎉'} · ${esc(v.updated||'')}</div></button>`}).join('')}<button class="card add" data-a="newV"><span class="add-symbol" aria-hidden="true">＋</span>Свари сюжет</button></div>`;
+    body=`${seriesCards(p)}<div class="head"><h3>Короткие сюжеты</h3></div><div class="grid">${p.videos.map((v,i)=>{const next=STEPS.find(s=>!stepDone(v,s));return `<button class="card story-card" data-a="openV" data-id="${esc(v.id)}">${asset(3+i%2)}<h3>${esc(v.title||'Без названия')}</h3><div class="dots" aria-label="Готово шагов: ${STEPS.filter(s=>stepDone(v,s)).length} из ${STEPS.length}">${STEPS.map(s=>`<span class="dot ${stepDone(v,s)?'on':''}"></span>`).join('')}</div><div class="meta">${next?`Дальше: ${next.n}. ${next.t}`:'Все шаги готовы 🎉'} · ${esc(v.updated||'')}</div></button>`}).join('')}<button class="card add" data-a="newV"><span class="add-symbol" aria-hidden="true">＋</span>Свари сюжет</button></div>`;
   }else{
     const li=(arr,t)=>arr.length?arr.map(x=>{
       const sub=t==='H'?(heroInfo(x).a.v||x.character||'Характер пока не выбран'):([locInfo(x).place,locInfo(x).heroes&&'для: '+locInfo(x).heroes].filter(Boolean).join(' · ')||'Паспорт пока не заполнен');
@@ -1988,7 +2296,7 @@ function viewProject(){
     }).join(''):`<div class="empty">Пока пусто. Добавьте ${t==='H'?'первого героя':'первую локацию'}.</div>`;
     body=`<div class="libcols"><section class="panel"><div class="head"><h3>Герои</h3><button class="btn small sun" data-a="newH">＋ Герой</button></div><div class="list">${li(p.heroes,'H')}</div></section><section class="panel"><div class="head"><h3>Локации</h3><button class="btn small sky" data-a="newL">＋ Локация</button></div><div class="list">${li(p.locations,'L')}</div></section></div><div class="hint">Создавайте героев и локации один раз — выбирайте их в любом сюжете этого проекта.</div>`;
   }
-  return `<button class="back" data-a="home">‹ Все проекты</button>${projectHeader(p)}${guideHTML()}${coverSuggestionHTML(p)}<nav class="tabs" role="tablist" aria-label="Разделы проекта"><button class="tab" role="tab" aria-selected="${tab==='lib'}" data-a="tab" data-id="lib">Герои и локации</button><button class="tab" role="tab" aria-selected="${tab==='videos'}" data-a="tab" data-id="videos">Сюжеты (${p.videos.length})</button></nav>${body}<div class="actions">${delBtn('delP','Удалить проект')}</div>`;
+  return `<button class="back" data-a="home">‹ Все проекты</button>${projectHeader(p)}${guideHTML()}${coverSuggestionHTML(p)}<nav class="tabs" role="tablist" aria-label="Разделы проекта"><button class="tab" role="tab" aria-selected="${tab==='lib'}" data-a="tab" data-id="lib">Герои и локации</button><button class="tab" role="tab" aria-selected="${tab==='videos'}" data-a="tab" data-id="videos">Сюжеты (${p.videos.length+(p.serials||[]).length})</button></nav>${body}<div class="actions">${delBtn('delP','Удалить проект')}</div>`;
 }
 
 function delBtn(action,label){return V.confirm===action?`<span class="meta">Удалить без возврата?</span><button class="btn small danger" data-a="${action}">Да, удалить</button><button class="btn small" data-a="noconfirm">Отмена</button>`:`<button class="btn small danger" data-a="ask" data-id="${action}">${label}</button>`}
